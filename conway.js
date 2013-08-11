@@ -16,7 +16,8 @@ function getCell(x, y) {					//return the cells at the given position
 function initCanvas() {
 	canvas.height = canvas.style.height = gridHeight*cellSize;
 	canvas.width = canvas.style.width = gridWidth*cellSize;
-	ctx = canvas.getContext("2d");
+
+	cells = [];
 
 	for(var i = 0; i < gridWidth*gridHeight; i++){ 		
 		cells[i] = 0;
@@ -24,7 +25,7 @@ function initCanvas() {
 }
 
 var canvas = document.getElementsByTagName("canvas")[0];
-var ctx; //canvas context
+var ctx = canvas.getContext("2d"); //canvas context
 
 var cells = [];
 var gridWidth; //in cells
@@ -32,8 +33,10 @@ var gridHeight; //in cells
 var cellSize; //in pixels
 var selected = []; //cells to be highlighted
 var interval; //computation loop -> window.setInterval()
+var tickCount = 0;
+var tickCounter;
 
-//mouse position :
+//mouse position on the canvas :
 var mouseX;
 var mouseY;
 
@@ -43,61 +46,29 @@ function init(ngridWidth, ngridHeight, ncellSize) {
 	gridHeight = ngridHeight;
 	cellSize = ncellSize;
 
+	tickCounter = document.createElement("p");
+	tickCounter.style.marginTop = "5px";
+	tickCounter.style.color = "grey";
+	tickCounter.innerHTML = "Tick count : "+tickCount;
+	tickCounter = document.body.insertBefore(tickCounter, canvas.nextSibling);
+
 	initCanvas();
 
 	canvas.addEventListener("mousemove", function(e) {
-		mouseX = e.clientX - canvas.offsetLeft;
-		mouseY = e.clientY - canvas.offsetTop;
 
-		var cell = getCell(mouseX, mouseY);
-		selected = getSurroundingCells(cell);
+			mouseX = e.clientX - canvas.offsetLeft;
+			mouseY = e.clientY - canvas.offsetTop;
 
+			var cell = getCell(mouseX, mouseY);
+			selected = getSurroundingCells(cell);
 
 	}, false);
 
 	canvas.addEventListener("mousedown", function(e) {
+	
+			var cell = getCell(mouseX, mouseY);
+			cells[cell] == 1 ? cells[cell] = 0 : cells[cell] = 1;
 
-		var cell = getCell(mouseX, mouseY);
-		cells[cell] == 1 ? cells[cell] = 0 : cells[cell] = 1;
-
-		//console.log(cell);
-
-	}, false);
-
-	var widthInput = document.getElementById("width");
-	var heightInput = document.getElementById("height");
-	var sizeInput = document.getElementById("size");
-	var generateButton = document.getElementById("generate");
-
-	generateButton.addEventListener("mousedown", function(e) {
-		if(interval) {
-			stopButton.disabled = true;
-			clearInterval(interval);
-			startButton.disabled = false;
-		}
-
-		gridWidth = +widthInput.value;
-		gridHeight = +heightInput.value;
-		cellSize = +sizeInput.value;
-
-		initCanvas();
-
-	}, false)
-
-
-	var intervalInput = document.getElementById("time");
-	var startButton = document.getElementById("start");
-	var stopButton = document.getElementById("stop");
-
-	startButton.addEventListener("mousedown", function(e) {
-		startButton.disabled = true;
-		interval = setInterval(compute, intervalInput.value);
-		stopButton.disabled = false;
-	}, false);
-	stopButton.addEventListener("mousedown", function(e) {
-		stopButton.disabled = true;
-		clearInterval(interval);
-		startButton.disabled = false;
 	}, false);
 
 }
@@ -119,7 +90,7 @@ function getSurroundingCells(cell) {       // return surrounding cells, clockwis
 	//if(cellPosition.x < gridWidth*cellSize-cellSize)      //checking this way wasn't useful because it didn't work with diagonal cells (which are checked with the top and bottom ones)  
 		var rightCell = cell+1;								//I'll pretend this permit the "torroidal array" (should be the right name), it means what reaches the left, appears at right.
 	/*else 													//And it doesn't look broken (so it's okay this way !)
-		var rightCell = -1;
+		var rightCell = -1;									//Have to be fixed though.
 
 	if(cellPosition.x > cellSize-1)*/
 		var leftCell = cell-1;
@@ -147,7 +118,6 @@ function getLivingSurroundingCells(cell){     //return the living cells surround
 
 function compute() {
 
-
 	var toDie = [];     //cells to be killed at this tick    (Actually there is no checking to see if the cells will change its state or not, so cells wich are already dead can be in this array)
 	var toBorn = [];    //cells to be set alive at this tick	(Same thing with this array)
 	var cellsNumber = cells.length;
@@ -173,7 +143,6 @@ function compute() {
 			default:
 				toDie.push(cell);
 		}
-
 	}
 
 	cellsNumber = toDie.length;
@@ -184,13 +153,12 @@ function compute() {
 	for(var cell = 0; cell < cellsNumber; cell++)
 		cells[toBorn[cell]] = 1;
 
+	tickCounter.textContent = "Tick count : "+tickCount++;
+
 	return true;
 }
 
 function render() {
-
-	/*var time = Date.now();
-	var delta = (time - then)/1000;*/
 
 	var cellsNumber = cells.length;
 	for(var cell = 0; cell < cellsNumber; cell++) {
@@ -201,13 +169,9 @@ function render() {
 			cells[cell] == 1 ? ctx.fillStyle = "black" : ctx.fillStyle = "white";
 
 		var pos = getPos(cell);
-		
-		//console.log(pos.x+"  x  "+pos.y);  //uncommenting this will slow everything down
 
 		ctx.fillRect( pos.x, pos.y, cellSize, cellSize );   //render the cell
-
-		//console.log(cell);
-
+		
 	}
 
 	if(!window.requestAnimationFrame) {                  //loop using requestAnimationFrame (compatibility check)
@@ -220,7 +184,6 @@ function render() {
 	}
 	else
 		requestAnimationFrame(render);
-
 
 }
 
