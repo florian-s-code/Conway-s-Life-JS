@@ -1,0 +1,10 @@
+canvas {
+	border: 2px solid black;
+	cursor: none;
+}
+.control {
+	width: 200px;
+	margin: 50px;
+	border: 1px solid grey;
+	text-align: center;
+}
