@@ -23,11 +23,16 @@ function initCanvas() {
 		cells[i] = 0;
 	}
 }
+function triggerCell(cell) {
+	cells[cell] == 1 ? cells[cell] = 0 : cells[cell] = 1;
+	changed.push(cell);
+}
 
 var canvas = document.getElementsByTagName("canvas")[0];
 var ctx = canvas.getContext("2d"); //canvas context
 
 var cells = [];
+var changed = []; //cells which state have changed
 var gridWidth; //in cells
 var gridHeight; //in cells
 var cellSize; //in pixels
@@ -36,9 +41,11 @@ var interval; //computation loop -> window.setInterval()
 var tickCount = 0;
 var tickCounter;
 
-//mouse position on the canvas :
-var mouseX;
-var mouseY;
+//mouse related:
+var mouseX = 0;
+var mouseY = 0;
+var mouseDown = false;
+var lastCell = -1; //last triggered cell (avoid multiple triggering of the same cell)
 
 function init(ngridWidth, ngridHeight, ncellSize) {
 
@@ -56,20 +63,77 @@ function init(ngridWidth, ngridHeight, ncellSize) {
 
 	canvas.addEventListener("mousemove", function(e) {
 
-			mouseX = e.clientX - canvas.offsetLeft;
-			mouseY = e.clientY - canvas.offsetTop;
+			mouseX = e.clientX - canvas.offsetLeft + window.pageXOffset;
+			mouseY = e.clientY - canvas.offsetTop + window.pageYOffset;
 
 			var cell = getCell(mouseX, mouseY);
 			selected = getSurroundingCells(cell);
 
+			if(mouseDown && cell != lastCell) {
+				triggerCell(cell);
+				lastCell = cell;
+			}
+
 	}, false);
 
 	canvas.addEventListener("mousedown", function(e) {
+		var cell = getCell(mouseX, mouseY);
+		triggerCell(cell);
+		lastCell = cell;
+		mouseDown = true;
 	
-			var cell = getCell(mouseX, mouseY);
-			cells[cell] == 1 ? cells[cell] = 0 : cells[cell] = 1;
-
 	}, false);
+
+	canvas.addEventListener("mouseup", function(e) {
+		mouseDown = false;
+	}, false);
+
+	canvas.addEventListener("mouseleave", function(e) {
+		mouseDown = false;
+	}, false);
+
+	/**/document.addEventListener("keydown", function(e) {
+
+		var moved = false;
+
+		console.log("keypressed");
+		switch(e.keyCode) {
+
+			case 81: //Q or A -> left
+			case 65: 
+				mouseX -= cellSize;
+				moved = true;
+			break;
+
+			case 87: //W or Z -> up
+			case 90:
+				mouseY -= cellSize;
+				moved = true;
+			break;
+
+			case 68: //D -> right
+				mouseX += cellSize;
+				moved = true;
+			break;
+
+			case 83: //S -> down
+				mouseY += cellSize;
+				moved = true;
+			break;
+
+			case 13: //enter
+				triggerCell(getCell(mouseX, mouseY));
+			break;
+		}
+
+		if(moved) {
+			var cell = getCell(mouseX, mouseY);
+			selected = getSurroundingCells(cell);
+		}
+
+		return false;
+
+	}, false);//*/
 
 }
 
@@ -118,8 +182,8 @@ function getLivingSurroundingCells(cell){     //return the living cells surround
 
 function compute() {
 
-	var toDie = [];     //cells to be killed at this tick    (Actually there is no checking to see if the cells will change its state or not, so cells wich are already dead can be in this array)
-	var toBorn = [];    //cells to be set alive at this tick	(Same thing with this array)
+	var toDie = [];     //cells to be killed at this tick
+	var toBorn = [];    //cells to be set alive at this tick
 	var cellsNumber = cells.length;
 
 	for(var cell = 0; cell < cellsNumber; cell++){
@@ -129,7 +193,8 @@ function compute() {
 		switch(livingSurroundingCells) {
 			case 0:
 			case 1:
-				toDie.push(cell);
+				if(cells[cell] == 1)
+					toDie.push(cell);
 			break;
 
 			case 2:
@@ -137,11 +202,13 @@ function compute() {
 			break;
 
 			case 3:
-				toBorn.push(cell);
+				if(cells[cell] == 0)
+					toBorn.push(cell);
 			break;
 
 			default:
-				toDie.push(cell);
+				if(cells[cell] == 1)
+					toDie.push(cell);
 		}
 	}
 
@@ -153,6 +220,7 @@ function compute() {
 	for(var cell = 0; cell < cellsNumber; cell++)
 		cells[toBorn[cell]] = 1;
 
+	changed = toDie.concat(toBorn);
 	tickCounter.textContent = "Tick count : "+tickCount++;
 
 	return true;
@@ -160,18 +228,28 @@ function compute() {
 
 function render() {
 
-	var cellsNumber = cells.length;
-	for(var cell = 0; cell < cellsNumber; cell++) {
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-		if(selected.indexOf(cell) > -1)											//if the cell has to be higlighted
-			cells[cell] == 1 ? ctx.fillStyle = "#500": ctx.fillStyle = "#bbb";
-		else
-			cells[cell] == 1 ? ctx.fillStyle = "black" : ctx.fillStyle = "white";
+	var length = cells.length;
+	for(var cell = 0; cell < length; cell++) {
 
-		var pos = getPos(cell);
+		if(cells[cell] == 1) {
 
-		ctx.fillRect( pos.x, pos.y, cellSize, cellSize );   //render the cell
+			ctx.fillStyle="black";
+			var pos = getPos(cell);
+			ctx.fillRect( pos.x, pos.y, cellSize, cellSize );   //render the cell
+		}
 		
+	}
+
+	length = selected.length;
+	for(var i = 0; i < length; i++){
+
+		var cell = selected[i];
+
+		cells[cell] == 1 ? ctx.fillStyle = "#522" : ctx.fillStyle = "#aaa";
+		var pos = getPos(cell);
+		ctx.fillRect( pos.x, pos.y, cellSize, cellSize );
 	}
 
 	if(!window.requestAnimationFrame) {                  //loop using requestAnimationFrame (compatibility check)

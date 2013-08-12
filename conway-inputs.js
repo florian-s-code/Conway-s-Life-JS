@@ -5,6 +5,12 @@
 	var generateButton = document.getElementById("generate");
 
 	generateButton.addEventListener("mousedown", function(e) {
+
+		if(isNaN(widthInput.value) || isNaN(heightInput.value) || isNaN(sizeInput.value)) {
+			console.log("NaN");
+			return;
+		}
+
 		if(interval) {
 			stopButton.disabled = true;
 			clearInterval(interval);

@@ -1,6 +1,12 @@
 canvas {
 	border: 2px solid black;
-	cursor: none;
+	cursor: crosshair;
+}
+.wrapper {
+	max-width: 99%;
+	max-height: 50%;
+	resize: both;
+	overflow: auto;
 }
 .control {
 	width: 200px;
