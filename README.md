@@ -1,7 +1,6 @@
 # Conway's Game of Life JS
 ### Version 0.6
 
-
 A basic implementation of [Conway's Game of Life](//en.wikipedia.org/wiki/Conway's_Game_of_Life) in HTML5, use mouse and click on the canvas to trigger cells or use WASD/ZQSD + Enter (better precision). Activate the calculation by setting the timer with the below form (and stop it before drawing or you'll see nothing). You can change the dimension of the canvas with the second form. 
 
 Still needs some work (a lot of optimisation).
