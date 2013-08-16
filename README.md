@@ -15,15 +15,15 @@ v0.55 :
 Added tick counter
 
 v0.6 : 
-Added keyboard support
-Better render algorithm (now much faster/smoother with a high number of cells)
+Added keyboard support   
+Better render algorithm (now much faster/smoother with a high number of cells)   
 Fixed mouse position after scrolling
 
 v1.0 :
-Better compute algorithm, now depend of the number of active cells, not of the total number of cells
-Added Step button
-Changed files/code layout, conway.js now correspond to a Conway object, all other code has been moved to main.js
-Slightly changed page layout
+Better compute algorithm, now depend of the number of active cells, not of the total number of cells   
+Added Step button   
+Changed files/code layout, conway.js now correspond to a Conway object, all other code has been moved to main.js  
+Slightly changed page layout   
 
 ### To do :
 
