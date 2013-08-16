@@ -1,21 +1,29 @@
 canvas {
 	border: 2px solid black;
 	cursor: crosshair;
+	float: left;
+	margin-bottom: 20px;
+	margin-right: 20px;
 }
-.wrapper {
-	max-width: 99%;
-	max-height: 50%;
-	resize: both;
-	overflow: auto;
+p {
+	max-width: 90%;
 }
 .control {
+	display: inline-block;
 	width: 200px;
 	margin: 20px;
 	border: 1px solid grey;
 	text-align: center;
+	vertical-align: top;
+	padding: 15px;
+	padding-bottom: 5px;
+}
+label, input {
+	margin-bottom: 10px;
 }
 .counter {
 	margin-top: 2px;
 	margin-bottom: 20px;
 	margin-left: 50px;
+	clear:both;
 }

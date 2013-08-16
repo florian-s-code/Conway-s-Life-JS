@@ -8,30 +8,34 @@
 </head>
 <body>
 	<canvas>Your browser doesn't support Canvas, get a real browser. Mozilla's <a href="//www.mozilla.org/en-US/firefox/fx/#desktop">Firefox</a> is great. <!--Nobody will ever see this but Frefox is really great--></canvas>
-	<p>A basic implementation of <a href="//en.wikipedia.org/wiki/Conway's_Game_of_Life">Conway's Game of Life</a> in HTML5, use mouse and click on the canvas to trigger cells or use WASD/ZQSD + Enter (better precision). Activate the calculation by setting the timer with the below form (and stop it before drawing or you'll see nothing). You can change the dimension of the canvas with the second form.</p>
-	<p>Still needs some work (a lot of optimisation). Changelog and code : <a href="//github.com/yhoyhoj/Conway-s-Life-JS">github.com/yhoyhoj/Conway-s-Life-JS</a></p>
-	<div class="control">
-		<label for="time">Computation Interval (milliseconds) :</label>
-		<input type="number" name="time" value="250" id="time"><br/><br/>
-		<input type="button" id="start" value="Start">
-		<input type="button" id="stop" value="Stop" disabled>
-	</div>
-	<div class="control">
-		<label for="time">Cells in width :</label>
-		<input type="number" name="width" value="50" id="width"><br/>
-		<label for="time">Cells in height :</label>
-		<input type="number" name="height" value="50" id="height"><br/>
-		<label for="time">Cell size (pixels) :</label>
-		<input type="number" name="size" value="10" id="size"><br/>
-		<input type="button" id="generate" value="Generate">
-	</div>
-	<div class="control">
-		<input type="button" id="resetcounter" value="Reset counter">
+	<p>A basic implementation of <a href="//en.wikipedia.org/wiki/Conway's_Game_of_Life">Conway's Game of Life</a> in HTML5, use mouse and click on the canvas to trigger cells or use WASD/ZQSD + Enter (better precision). Activate the calculation by setting the timer with the below form (and stop it before drawing or you'll see nothing) or use the Step button to see the changes step by step. You can change the dimension of the canvas with the second form.</p>
+	<p>Changelog and code : <a href="//github.com/yhoyhoj/Conway-s-Life-JS">github.com/yhoyhoj/Conway-s-Life-JS</a></p>
+
+	<div class="wrapper">
+		<div class="control">
+			<label for="time">Computation Interval (milliseconds) :</label>
+			<input type="number" name="time" value="250" id="time">
+			<input type="button" id="start" value="Start">
+			<input type="button" id="stop" value="Stop" disabled>
+			<input type="button" id="step" value="Step">
+		</div>
+		<div class="control">
+			<input type="button" id="resetcounter" value="Reset counter">
+		</div>
+		<div class="control">
+			<label for="time">Cells in width :</label>
+			<input type="number" name="width" value="50" id="width"><br/>
+			<label for="time">Cells in height :</label>
+			<input type="number" name="height" value="50" id="height"><br/>
+			<label for="time">Cell size (pixels) :</label>
+			<input type="number" name="size" value="10" id="size">
+			<input type="button" id="generate" value="Generate">
+		</div>
 	</div>
 
 	<p>Experiment by yhoyhoj, more : <a href="/">Back to Index</a><p>
 
 	<script type="text/javascript" src="conway.js"></script>
-	<script type="text/javascript" src="conway-inputs.js"></script>
+	<script type="text/javascript" src="main.js"></script>
 </body>
 </html>

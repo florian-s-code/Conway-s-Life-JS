@@ -1,134 +1,110 @@
-function getPos(cell) {						//return the position f the given cell
+function Conway(canvas) {
 
-	var posY = ((cell-cell%gridWidth)/gridWidth)*cellSize;
-	var posX = (cell%gridWidth)*cellSize;
+	this.canvas = canvas; //document.getElementsByTagName("canvas")[0]
+	this.ctx = canvas.getContext("2d"); //canvas context
 
-	return {x:posX, y:posY}
+	this.cells = [];
+	this.changed = []; //cells which have changed last tick
+	this.gridWidth; //in cells
+	this.gridHeight; //in cells
+	this.cellSize; //in pixels
+	this.selected = []; //cells to be highlighted
+	this.interval; //computation loop -> window.setInterval()
+	this.tickCount = 0;
+	this.tickCounter;
+
+	//mouse related:
+	this.mouseX = 0;
+	this.mouseY = 0;
+	this.mouseDown = false;
+	this.lastCell = -1; //last triggered cell (avoid multiple triggering of the same cell)
+
 }
 
-function getCell(x, y) {					//return the cells at the given position
-	var lines = (y-y%cellSize)/cellSize;
-	var columns = (x-x%cellSize)/cellSize;
+Conway.prototype.init = function(ngridWidth, ngridHeight, ncellSize) {
 
-	return lines*gridWidth + columns;
-}
+	this.gridWidth = ngridWidth;
+	this.gridHeight = ngridHeight;
+	this.cellSize = ncellSize;
 
-function initCanvas() {
-	canvas.height = canvas.style.height = gridHeight*cellSize;
-	canvas.width = canvas.style.width = gridWidth*cellSize;
+	this.tickCounter = document.createElement("p");
+	this.tickCounter.style.marginTop = "5px";
+	this.tickCounter.style.color = "grey";
+	this.tickCounter.innerHTML = "Tick count : "+this.tickCount;
+	this.tickCounter = document.body.insertBefore(this.tickCounter, this.canvas.nextSibling);
 
-	cells = [];
+	this.initCanvas();
 
-	for(var i = 0; i < gridWidth*gridHeight; i++){ 		
-		cells[i] = 0;
-	}
-}
-function triggerCell(cell) {
-	cells[cell] == 1 ? cells[cell] = 0 : cells[cell] = 1;
-	changed.push(cell);
-}
 
-var canvas = document.getElementsByTagName("canvas")[0];
-var ctx = canvas.getContext("2d"); //canvas context
+	var conway = this; //prevent scope error - LOOKING FOR A BETTER WAY (if someone reading this know something : @yhoyhoj)
 
-var cells = [];
-var changed = []; //cells which state have changed
-var gridWidth; //in cells
-var gridHeight; //in cells
-var cellSize; //in pixels
-var selected = []; //cells to be highlighted
-var interval; //computation loop -> window.setInterval()
-var tickCount = 0;
-var tickCounter;
+	this.canvas.addEventListener("mousemove", function(e) {
 
-//mouse related:
-var mouseX = 0;
-var mouseY = 0;
-var mouseDown = false;
-var lastCell = -1; //last triggered cell (avoid multiple triggering of the same cell)
+			conway.mouseX = e.clientX - conway.canvas.offsetLeft + window.pageXOffset;
+			conway.mouseY = e.clientY - conway.canvas.offsetTop + window.pageYOffset;
 
-function init(ngridWidth, ngridHeight, ncellSize) {
+			var cell = conway.getCell(conway.mouseX, conway.mouseY);
+			conway.selected = conway.getSurroundingCells(cell);
 
-	gridWidth = ngridWidth;
-	gridHeight = ngridHeight;
-	cellSize = ncellSize;
-
-	tickCounter = document.createElement("p");
-	tickCounter.style.marginTop = "5px";
-	tickCounter.style.color = "grey";
-	tickCounter.innerHTML = "Tick count : "+tickCount;
-	tickCounter = document.body.insertBefore(tickCounter, canvas.nextSibling);
-
-	initCanvas();
-
-	canvas.addEventListener("mousemove", function(e) {
-
-			mouseX = e.clientX - canvas.offsetLeft + window.pageXOffset;
-			mouseY = e.clientY - canvas.offsetTop + window.pageYOffset;
-
-			var cell = getCell(mouseX, mouseY);
-			selected = getSurroundingCells(cell);
-
-			if(mouseDown && cell != lastCell) {
-				triggerCell(cell);
-				lastCell = cell;
+			if(conway.mouseDown && cell != conway.lastCell) {
+				conway.triggerCell(cell);
+				conway.lastCell = cell;
 			}
 
 	}, false);
 
-	canvas.addEventListener("mousedown", function(e) {
-		var cell = getCell(mouseX, mouseY);
-		triggerCell(cell);
-		lastCell = cell;
-		mouseDown = true;
+	this.canvas.addEventListener("mousedown", function(e) {
+		var cell = conway.getCell(conway.mouseX, conway.mouseY);
+		conway.triggerCell(cell);
+		conway.lastCell = cell;
+		conway.mouseDown = true;
 	
 	}, false);
 
-	canvas.addEventListener("mouseup", function(e) {
-		mouseDown = false;
+	this.canvas.addEventListener("mouseup", function(e) {
+		conway.mouseDown = false;
 	}, false);
 
-	canvas.addEventListener("mouseleave", function(e) {
-		mouseDown = false;
+	this.canvas.addEventListener("mouseleave", function(e) {
+		conway.mouseDown = false;
 	}, false);
 
 	/**/document.addEventListener("keydown", function(e) {
 
 		var moved = false;
 
-		console.log("keypressed");
 		switch(e.keyCode) {
 
 			case 81: //Q or A -> left
 			case 65: 
-				mouseX -= cellSize;
+				conway.mouseX -= conway.cellSize;
 				moved = true;
 			break;
 
 			case 87: //W or Z -> up
 			case 90:
-				mouseY -= cellSize;
+				conway.mouseY -= conway.cellSize;
 				moved = true;
 			break;
 
 			case 68: //D -> right
-				mouseX += cellSize;
+				conway.mouseX += conway.cellSize;
 				moved = true;
 			break;
 
 			case 83: //S -> down
-				mouseY += cellSize;
+				conway.mouseY += conway.cellSize;
 				moved = true;
 			break;
 
 			case 13: //enter
-				triggerCell(getCell(mouseX, mouseY));
+				conway.triggerCell(conway.getCell(conway.mouseX, conway.mouseY));
 			break;
 		}
 
 		if(moved) {
-			var cell = getCell(mouseX, mouseY);
-			selected = getSurroundingCells(cell);
+			var cell = conway.getCell(conway.mouseX, conway.mouseY);
+			conway.selected = conway.getSurroundingCells(cell);
 		}
 
 		return false;
@@ -137,17 +113,59 @@ function init(ngridWidth, ngridHeight, ncellSize) {
 
 }
 
-function getSurroundingCells(cell) {       // return surrounding cells, clockwise starting with the top-left corner. Return -1 if cell is not on the board.
+Conway.prototype.startComputeLoop = function(time) {
 
-	cellPosition = getPos(cell)
+	var conway = this;
+	this.interval = setInterval(function() {conway.compute()}, time);
+}
 
-	if(cellPosition.y > cellSize-1 )
-		var upperCells = [cell-gridWidth-1, cell-gridWidth, cell-gridWidth+1];
+Conway.prototype.stopComputeLoop = function() {
+	clearInterval(this.interval);
+}
+
+Conway.prototype.getPos = function(cell) {						//return the position f the given cell
+
+	var posY = ((cell-cell%this.gridWidth)/this.gridWidth)*this.cellSize;
+	var posX = (cell%this.gridWidth)*this.cellSize;
+
+	return {x:posX, y:posY}
+}
+
+Conway.prototype.getCell = function(x, y) {					//return the cells at the given position
+	var lines = (y-y%this.cellSize)/this.cellSize;
+	var columns = (x-x%this.cellSize)/this.cellSize;
+
+	return lines*this.gridWidth + columns;
+}
+
+Conway.prototype.initCanvas = function() {
+	this.canvas.height = this.canvas.style.height = this.gridHeight*this.cellSize;
+	this.canvas.width = this.canvas.style.width = this.gridWidth*this.cellSize;
+
+	this.cells = [];
+	this.selected= [];
+
+	var length = this.gridWidth*this.gridHeight;
+	for(var i = 0; i < length; i++) { 		
+		this.cells[i] = 0;
+	}
+}
+Conway.prototype.triggerCell = function(cell) {
+	this.cells[cell] == 1 ? this.cells[cell] = 0 : this.cells[cell] = 1;
+	this.changed.push(cell);
+}
+
+Conway.prototype.getSurroundingCells = function(cell) {       // return surrounding cells, clockwise starting with the top-left corner. Return -1 if cell is not on the board.
+
+	var cellPosition = this.getPos(cell)
+
+	if(cellPosition.y > this.cellSize-1 )
+		var upperCells = [cell-this.gridWidth-1, cell-this.gridWidth, cell-this.gridWidth+1];
 	else
 		var upperCells = [-1, -1, -1];
 
-	if(cellPosition.y < gridHeight*cellSize-cellSize)
-		var lowerCells = [cell+gridWidth-1, cell+gridWidth, cell+gridWidth+1];
+	if(cellPosition.y < this.gridHeight*this.cellSize-this.cellSize)
+		var lowerCells = [cell+this.gridWidth-1, cell+this.gridWidth, cell+this.gridWidth+1];
 	else
 		var lowerCells = [-1, -1, -1];
 
@@ -165,105 +183,125 @@ function getSurroundingCells(cell) {       // return surrounding cells, clockwis
 
 }
 
-function getLivingSurroundingCells(cell){     //return the living cells surrounding the given one.
+Conway.prototype.getLivingSurroundingCells = function(cell) {     //return the living cells surrounding the given one.
 
-	livingCells = [];
-	var surroundingCells = getSurroundingCells(cell);
+	var livingCells = [];
+	var surroundingCells = this.getSurroundingCells(cell);
 	var length = surroundingCells.length;
 
 	for(var i = 0; i < length; i++) {
 
 		if(surroundingCells[i] > -1)
-			cells[surroundingCells[i]] == 1 ? livingCells.push(surroundingCells[i]): false;
+			this.cells[surroundingCells[i]] == 1 ? livingCells.push(surroundingCells[i]): false;
 	}
 
 	return livingCells;
 }
 
-function compute() {
+Conway.prototype.nextState = function(cell) { //return the next state of the cell OR -1 if the cell shouldn't change.
+
+	var initialState = this.cells[cell];
+	var change = false;
+
+	switch(this.getLivingSurroundingCells(cell).length) {
+		case 0:
+		case 1:
+			if(initialState == 1)
+				change = true;
+		break;
+
+		case 2:
+			//stay the same
+		break;
+
+		case 3:
+			if(initialState == 0)
+				change = true;
+		break;
+
+		default:
+			if(initialState == 1)
+				change = true;
+	}
+
+	if(change){
+		if(initialState == 1)
+			return 0;
+		else
+			return 1;
+	}
+	else
+		return -1
+
+}
+
+Conway.prototype.compute = function() {
 
 	var toDie = [];     //cells to be killed at this tick
 	var toBorn = [];    //cells to be set alive at this tick
-	var cellsNumber = cells.length;
+	var toBeTested = []; //cells
+	var tested = [];    //cells already tested
 
-	for(var cell = 0; cell < cellsNumber; cell++){
+	// "A cell that did not change at the last time step, and none of whose neighbours changed, is guaranteed not to change at the current time step as well" - Wikipedia
+	// So a cell which have been changed last tick or is one the changed cells' neighbours should be tested.
 
-		var livingSurroundingCells = getLivingSurroundingCells(cell).length;
+	var length = this.changed.length;
+	for(var i = 0; i < length; i++) {
+		toBeTested = toBeTested.concat(this.changed[i], this.getSurroundingCells(this.changed[i]));
+	}
 
-		switch(livingSurroundingCells) {
-			case 0:
-			case 1:
-				if(cells[cell] == 1)
-					toDie.push(cell);
-			break;
+	while(toBeTested.length != 0) {
 
-			case 2:
-				//stay the same
-			break;
+		var cell = toBeTested.shift();
 
-			case 3:
-				if(cells[cell] == 0)
-					toBorn.push(cell);
-			break;
-
-			default:
-				if(cells[cell] == 1)
-					toDie.push(cell);
+		if(tested.indexOf(cell) == -1 && cell != -1) {
+			tested.push(cell);
+			var cellState = this.nextState(cell);
+			if(cellState != -1) {
+				cellState == 1 ? toBorn.push(cell) : toDie.push(cell);
+			}
 		}
+
 	}
 
 	cellsNumber = toDie.length;
 	for(var cell = 0; cell < cellsNumber; cell++)
-		cells[toDie[cell]] = 0;
+		this.cells[toDie[cell]] = 0;
 
 	cellsNumber = toBorn.length;
 	for(var cell = 0; cell < cellsNumber; cell++)
-		cells[toBorn[cell]] = 1;
+		this.cells[toBorn[cell]] = 1;
 
-	changed = toDie.concat(toBorn);
-	tickCounter.textContent = "Tick count : "+tickCount++;
+	this.tickCounter.textContent = "Tick count : "+this.tickCount++;
+
+	this.changed = toDie.concat(toBorn);
 
 	return true;
 }
 
-function render() {
+Conway.prototype.render = function() {
 
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	ctx = this.ctx;
+	ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-	var length = cells.length;
+	var length = this.cells.length;
 	for(var cell = 0; cell < length; cell++) {
 
-		if(cells[cell] == 1) {
-
+		if(this.cells[cell] == 1) {
 			ctx.fillStyle="black";
-			var pos = getPos(cell);
-			ctx.fillRect( pos.x, pos.y, cellSize, cellSize );   //render the cell
+			var pos = this.getPos(cell);
+			ctx.fillRect( pos.x, pos.y, this.cellSize, this.cellSize );   //render the cell
 		}
 		
 	}
 
-	length = selected.length;
+	length = this.selected.length;
 	for(var i = 0; i < length; i++){
 
-		var cell = selected[i];
+		var cell = this.selected[i];
 
-		cells[cell] == 1 ? ctx.fillStyle = "#522" : ctx.fillStyle = "#aaa";
-		var pos = getPos(cell);
-		ctx.fillRect( pos.x, pos.y, cellSize, cellSize );
+		this.cells[cell] == 1 ? ctx.fillStyle = "#522" : ctx.fillStyle = "#aaa";
+		var pos = this.getPos(cell);
+		ctx.fillRect( pos.x, pos.y, this.cellSize, this.cellSize );
 	}
-
-	if(!window.requestAnimationFrame) {                  //loop using requestAnimationFrame (compatibility check)
-		if(window.mozRequestAnimationFrame)
-			mozRequestAnimationFrame(render);
-		else if(window.webkitRequestAnimationFrame)
-			webkitRequestAnimationFrame(render);
-		else
-			setInterval(render, 1000/50)
-	}
-	else
-		requestAnimationFrame(render);
-
 }
-
-init(50, 50, 10); //init the board
-render(); //start the render loop
